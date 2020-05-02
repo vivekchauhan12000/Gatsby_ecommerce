@@ -1,101 +1,123 @@
-import React from "react"
-import { Link, graphql } from "gatsby"
+import React from 'react'
+import Helmet from 'react-helmet'
+import { Link,graphql } from 'gatsby'
+import get from 'lodash/get'
 
-import Bio from "../components/bio"
-import Layout from "../components/layout"
-import SEO from "../components/seo"
-import { rhythm, scale } from "../utils/typography"
+//import BuyButton from '../components/BuyButton'
+import Layout from '../components/Layout'
+import { rhythm, scale } from '../utils/typography'
 
-const BlogPostTemplate = ({ data, pageContext, location }) => {
-  const post = data.markdownRemark
-  const siteTitle = data.site.siteMetadata.title
-  const { previous, next } = pageContext
+class BlogPostTemplate extends React.Component {
+  render() {
+    const post = this.props.data.markdownRemark
+    const siteTitle = get(this.props, 'data.site.siteMetadata.title')
+    const siteDescription = post.excerpt
+    const { previous, next } = this.props.pageContext
+    //const images = post.frontmatter.image.map(x => ({
+       // name: x.name,
+        //src: require(`./../pages${post.frontmatter.path}${x.src}.jpg`)
+      //}))
 
-  return (
-    <Layout location={location} title={siteTitle}>
-      <SEO
-        title={post.frontmatter.title}
-        description={post.frontmatter.description || post.excerpt}
-      />
-      <article>
-        <header>
-          <h1
-            style={{
-              marginTop: rhythm(1),
-              marginBottom: 0,
-            }}
-          >
-            {post.frontmatter.title}
-          </h1>
-          <p
-            style={{
-              ...scale(-1 / 5),
-              display: `block`,
-              marginBottom: rhythm(1),
-            }}
-          >
-            {post.frontmatter.date}
-          </p>
-        </header>
-        <section dangerouslySetInnerHTML={{ __html: post.html }} />
-        <hr
+    return (
+      <Layout location={this.props.location} title={siteTitle}>
+        <Helmet
+          htmlAttributes={{ lang: 'en' }}
+          meta={[{ name: 'description', content: siteDescription }]}
+          title={`${post.frontmatter.title} | ${siteTitle}`}
+          link={[{
+            href:"https://cdn.snipcart.com/themes/2.0/base/snipcart.min.css",
+            rel:"stylesheet",
+            type:"text/css" 
+          }]}
+          script={[{ 
+            type: 'text/javascript',
+            id: "snipcart",
+            "data-api-key": "YjdiNWIyOTUtZTIyMy00MWMwLTkwNDUtMzI1M2M2NTgxYjE0",
+            src:"https://cdn.snipcart.com/scripts/2.0/snipcart.js" 
+          },{
+            type: 'text/javascript',
+            src:"https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"
+          }]}/>
+        <h1>{post.frontmatter.title}</h1>
+       
+        <p
           style={{
+            ...scale(-1 / 5),
+            display: 'block',
             marginBottom: rhythm(1),
+            marginTop: rhythm(-1),
           }}
-        />
-        <footer>
-          <Bio />
-        </footer>
-      </article>
+        >
+        </p>
+        
+        <div dangerouslySetInnerHTML={{ __html: post.html }} />
+        
+        <button
+    className='snipcart-add-item buyBtn'
+    data-item-id={post.frontmatter.id}
+    data-item-price={post.frontmatter.price}
+    data-item-image={post.frontmatter.image}
+    data-item-name={post.frontmatter.title}
+    data-item-description={post.frontmatter.description}
+    data-item-url={"http://snipcart-gatsby.netlify.com" + post.frontmatter.path}>
+    Buy
+</button>
 
-      <nav>
         <ul
           style={{
-            display: `flex`,
-            flexWrap: `wrap`,
-            justifyContent: `space-between`,
-            listStyle: `none`,
+            marginTop: "45px",
+            display: 'flex',
+            flexWrap: 'wrap',
+            justifyContent: 'space-between',
+            listStyle: 'none',
             padding: 0,
           }}
         >
           <li>
-            {previous && (
+            {
+              previous &&
               <Link to={previous.fields.slug} rel="prev">
                 ← {previous.frontmatter.title}
               </Link>
-            )}
+            }
           </li>
           <li>
-            {next && (
+            {
+              next &&
               <Link to={next.fields.slug} rel="next">
                 {next.frontmatter.title} →
               </Link>
-            )}
+            }
           </li>
         </ul>
-      </nav>
-    </Layout>
-  )
+      </Layout>
+    )
+  }
 }
 
 export default BlogPostTemplate
 
 export const pageQuery = graphql`
-  query BlogPostBySlug($slug: String!) {
-    site {
-      siteMetadata {
-        title
+      query BlogPostBySlug($slug: String!) {
+        site {
+          siteMetadata {
+            title
+           
+          }
+        }
+        markdownRemark(fields: { slug: { eq: $slug } }) {
+          id
+          excerpt
+          html
+          frontmatter {
+            title
+            date(formatString: "MMMM DD, YYYY")
+            price
+            id
+            path
+            description
+          
+          }
+        }
       }
-    }
-    markdownRemark(fields: { slug: { eq: $slug } }) {
-      id
-      excerpt(pruneLength: 160)
-      html
-      frontmatter {
-        title
-        date(formatString: "MMMM DD, YYYY")
-        description
-      }
-    }
-  }
-`
+    `
